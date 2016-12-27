@@ -1,0 +1,100 @@
+From 42bfe71ff208fb313e139f835227a9634054b80b Mon Sep 17 00:00:00 2001
+From: Vincent Pinon <vpinon@kde.org>
+Date: Tue, 4 Oct 2016 23:24:07 +0200
+Subject: [PATCH] Allow cross-compiling resource file
+
+---
+ CMakeLists.txt | 71 +++++++++++++++++++++++++++++++---------------------------
+ 1 file changed, 38 insertions(+), 33 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8cf9942..4c0e550 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -23,45 +23,50 @@ option(BINARY_ICONS_RESOURCE "Install a Qt binary resource file, containing bree
+ option(SKIP_INSTALL_ICONS "Skip installing the icons files" OFF)
+ 
+ if(BINARY_ICONS_RESOURCE)
+-    find_package(Qt5 NO_MODULE REQUIRED Core)
+-    add_executable(qrcAlias qrcAlias.cpp)
+-    target_link_libraries(qrcAlias PUBLIC Qt5::Core)
+-
+-function(generate_binary_resource target outfile)
+-    set(RESOURCES_WORKING_DIR ${CMAKE_CURRENT_BINARY_DIR}/res)
+-    set(RESOURCE_FILE ${RESOURCES_WORKING_DIR}/breeze-${target}.qrc)
+-    set(BINARY_RESOURCE_FILE ${CMAKE_CURRENT_BINARY_DIR}/breeze-${target}.rcc)
+-
+-    get_target_property(QT_RCC_EXECUTABLE Qt5::rcc LOCATION)
+-
+-    add_custom_target(breeze-${target}-mkdir
+-        COMMAND ${CMAKE_COMMAND} -E make_directory ${RESOURCES_WORKING_DIR}
+-    )
+-    add_custom_command(OUTPUT ${RESOURCE_FILE}
+-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR} ${RESOURCES_WORKING_DIR}
+-        COMMAND ${CMAKE_COMMAND} -E remove
++    if(CMAKE_CROSSCOMPILING AND QRCALIAS_EXECUTABLE)
++        add_executable(qrcAlias IMPORTED GLOBAL)
++        set_target_properties(qrcAlias PROPERTIES IMPORTED_LOCATION ${QRCALIAS_EXECUTABLE})
++    else()
++        find_package(Qt5 NO_MODULE REQUIRED Core)
++        add_executable(qrcAlias qrcAlias.cpp)
++        target_link_libraries(qrcAlias PUBLIC Qt5::Core)
++    endif()
++
++    function(generate_binary_resource target outfile)
++        set(RESOURCES_WORKING_DIR ${CMAKE_CURRENT_BINARY_DIR}/res)
++        set(RESOURCE_FILE ${RESOURCES_WORKING_DIR}/breeze-${target}.qrc)
++        set(BINARY_RESOURCE_FILE ${CMAKE_CURRENT_BINARY_DIR}/breeze-${target}.rcc)
++
++        get_target_property(QT_RCC_EXECUTABLE Qt5::rcc LOCATION)
++
++        add_custom_target(breeze-${target}-mkdir
++            COMMAND ${CMAKE_COMMAND} -E make_directory ${RESOURCES_WORKING_DIR}
++            )
++        add_custom_command(OUTPUT ${RESOURCE_FILE}
++            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR} ${RESOURCES_WORKING_DIR}
++            COMMAND ${CMAKE_COMMAND} -E remove
+             ${RESOURCE_FILE}
+             ${RESOURCE_FILE}.depends
+             ${RESOURCES_WORKING_DIR}/.gitignore
+             ${RESOURCES_WORKING_DIR}/CMakeLists.txt
+-        COMMAND ${QT_RCC_EXECUTABLE} --project -o ${CMAKE_CURRENT_BINARY_DIR}/tmp.qrc
+-        COMMAND $<TARGET_FILE:qrcAlias> -i ${CMAKE_CURRENT_BINARY_DIR}/tmp.qrc -o ${RESOURCE_FILE}
+-
+-        WORKING_DIRECTORY ${RESOURCES_WORKING_DIR}
+-        DEPENDS breeze-${target}-mkdir
+-    )
+-    add_custom_command(OUTPUT ${BINARY_RESOURCE_FILE}
+-        COMMAND ${QT_RCC_EXECUTABLE} --binary
+-                    -o ${BINARY_RESOURCE_FILE}
+-                    ${RESOURCE_FILE}
+-        DEPENDS ${RESOURCE_FILE}
+-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+-    )
++            COMMAND ${QT_RCC_EXECUTABLE} --project -o ${CMAKE_CURRENT_BINARY_DIR}/tmp.qrc
++            COMMAND $<TARGET_FILE:qrcAlias> -i ${CMAKE_CURRENT_BINARY_DIR}/tmp.qrc -o ${RESOURCE_FILE}
++
++            WORKING_DIRECTORY ${RESOURCES_WORKING_DIR}
++            DEPENDS breeze-${target}-mkdir
++            )
++        add_custom_command(OUTPUT ${BINARY_RESOURCE_FILE}
++            COMMAND ${QT_RCC_EXECUTABLE} --binary
++            -o ${BINARY_RESOURCE_FILE}
++            ${RESOURCE_FILE}
++            DEPENDS ${RESOURCE_FILE}
++            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
++            )
+ 
+-    add_custom_target(breeze-${target}-rcc ALL DEPENDS ${BINARY_RESOURCE_FILE})
++        add_custom_target(breeze-${target}-rcc ALL DEPENDS ${BINARY_RESOURCE_FILE})
+ 
+-    set(${outfile} ${BINARY_RESOURCE_FILE} PARENT_SCOPE)
+-endfunction()
++        set(${outfile} ${BINARY_RESOURCE_FILE} PARENT_SCOPE)
++    endfunction()
+ endif()
+ 
+ find_program(BASH_EXE bash)
+-- 
+2.9.3
+

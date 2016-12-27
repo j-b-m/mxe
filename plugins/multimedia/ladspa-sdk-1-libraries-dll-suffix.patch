@@ -1,0 +1,78 @@
+diff -Naur a/makefile b/makefile
+--- a/makefile	2007-11-06 11:42:45.000000000 +0100
++++ b/makefile	2016-11-15 00:21:03.526093564 +0100
+@@ -8,6 +8,8 @@
+ INSTALL_INCLUDE_DIR	=	/usr/include/
+ INSTALL_BINARY_DIR	=	/usr/bin/
+ 
++LIB_SUFFIX = dll
++
+ ###############################################################################
+ #
+ # GENERAL
+@@ -17,11 +19,11 @@
+ LIBRARIES	=	-ldl -lm
+ CFLAGS		=	$(INCLUDES) -Wall -Werror -O3 -fPIC
+ CXXFLAGS	=	$(CFLAGS)
+-PLUGINS		=	../plugins/amp.so				\
+-			../plugins/delay.so				\
+-			../plugins/filter.so				\
+-			../plugins/noise.so				\
+-			../plugins/sine.so				
++PLUGINS		=	../plugins/amp.$(LIB_SUFFIX)				\
++			../plugins/delay.$(LIB_SUFFIX)				\
++			../plugins/filter.$(LIB_SUFFIX)				\
++			../plugins/noise.$(LIB_SUFFIX)				\
++			../plugins/sine.$(LIB_SUFFIX)				
+ PROGRAMS	=	../bin/analyseplugin				\
+ 			../bin/applyplugin 				\
+ 			../bin/listplugins
+@@ -33,13 +35,13 @@
+ # RULES TO BUILD PLUGINS FROM C OR C++ CODE
+ #
+ 
+-../plugins/%.so:	plugins/%.c ladspa.h
++../plugins/%.$(LIB_SUFFIX):	plugins/%.c ladspa.h
+ 	$(CC) $(CFLAGS) -o plugins/$*.o -c plugins/$*.c
+-	$(LD) -o ../plugins/$*.so plugins/$*.o -shared
++	$(LD) -o ../plugins/$*.$(LIB_SUFFIX) plugins/$*.o -shared
+ 
+-../plugins/%.so:	plugins/%.cpp ladspa.h
++../plugins/%.$(LIB_SUFFIX):	plugins/%.cpp ladspa.h
+ 	$(CPP) $(CXXFLAGS) -o plugins/$*.o -c plugins/$*.cpp
+-	$(CPP) -o ../plugins/$*.so plugins/$*.o -shared
++	$(CPP) -o ../plugins/$*.$(LIB_SUFFIX) plugins/$*.o -shared
+ 
+ ###############################################################################
+ #
+@@ -68,19 +70,19 @@
+ 
+ /tmp/test.wav:	targets ../snd/noise.wav
+ 	../bin/listplugins
+-	../bin/analyseplugin ../plugins/filter.so
+-	../bin/analyseplugin ../plugins/delay.so
+-	../bin/analyseplugin ../plugins/sine.so
+-	echo ; ../bin/analyseplugin -l ../plugins/sine.so ; echo
+-	../bin/analyseplugin ../plugins/amp.so
+-	../bin/analyseplugin ../plugins/noise.so
++	../bin/analyseplugin ../plugins/filter.$(LIB_SUFFIX)
++	../bin/analyseplugin ../plugins/delay.$(LIB_SUFFIX)
++	../bin/analyseplugin ../plugins/sine.$(LIB_SUFFIX)
++	echo ; ../bin/analyseplugin -l ../plugins/sine.$(LIB_SUFFIX) ; echo
++	../bin/analyseplugin ../plugins/amp.$(LIB_SUFFIX)
++	../bin/analyseplugin ../plugins/noise.$(LIB_SUFFIX)
+ 	../bin/applyplugin	-s 1					\
+ 				../snd/noise.wav /tmp/test.wav		\
+-				../plugins/filter.so lpf 500		\
+-				../plugins/filter.so lpf 500		\
+-				../plugins/sine.so sine_fcaa 6000	\
+-				../plugins/delay.so delay_5s 1 0.1	\
+-				../plugins/amp.so amp_mono 4		\
++				../plugins/filter.$(LIB_SUFFIX) lpf 500		\
++				../plugins/filter.$(LIB_SUFFIX) lpf 500		\
++				../plugins/sine.$(LIB_SUFFIX) sine_fcaa 6000	\
++				../plugins/delay.$(LIB_SUFFIX) delay_5s 1 0.1	\
++				../plugins/amp.$(LIB_SUFFIX) amp_mono 4		\
+ 
+ targets:	$(PLUGINS) $(PROGRAMS)
+ 

@@ -1,0 +1,75 @@
+From 9ac1f220215f3c38cbc449c3d604ed8422845239 Mon Sep 17 00:00:00 2001
+From: Ralf Habacker <ralf.habacker@freenet.de>
+Date: Sat, 24 Jan 2015 18:33:42 +0100
+Subject: [PATCH] Use runtime install prefix instead of compile time install
+ prefix.
+
+---
+ src/kdeinit/kinit_win.cpp | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/src/kdeinit/kinit_win.cpp b/src/kdeinit/kinit_win.cpp
+index b16e07c..4f49633 100644
+--- a/src/kdeinit/kinit_win.cpp
++++ b/src/kdeinit/kinit_win.cpp
+@@ -39,6 +39,7 @@
+ #include <QProcess>
+ #include <QFileInfo>
+ #include <QDebug>
++#include <QLibraryInfo>
+ 
+ // Under wince interface is defined, so undef it otherwise it breaks it
+ #undef interface
+@@ -199,6 +200,11 @@ static PSID getCurrentProcessOwner()
+     return getProcessOwner(GetCurrentProcess());
+ }
+ 
++static QString installRoot()
++{
++    return QLibraryInfo::location(QLibraryInfo::PrefixPath);
++}
++
+ /**
+  holds single process
+  */
+@@ -342,6 +348,7 @@ void ProcessList::init()
+ ProcessListEntry *ProcessList::find(const QString &name)
+ {
+     ProcessListEntry *ple;
++    QString installPrefix = installRoot();
+     foreach (ple, m_processes) {
+         if (ple->pid < 0) {
+             qDebug() << "negative pid!";
+@@ -352,9 +359,9 @@ ProcessListEntry *ProcessList::find(const QString &name)
+             continue;
+         }
+ 
+-        if (!ple->path.isEmpty() && !ple->path.toLower().startsWith(QString(QStringLiteral(CMAKE_INSTALL_PREFIX)).toLower())) {
++        if (!ple->path.isEmpty() && !ple->path.toLower().startsWith(installPrefix.toLower())) {
+             // process is outside of installation directory
+-            qDebug() << "path of the process" << name << "seems to be outside of the installPath:" << ple->path << QStringLiteral(CMAKE_INSTALL_PREFIX);
++            qDebug() << "path of the process" << name << "seems to be outside of the installPath:" << ple->path << installPrefix;
+             continue;
+         }
+         return ple;
+@@ -434,7 +441,7 @@ bool checkIfRegisteredInDBus(const QString &name, int _timeout = 10)
+ 
+ void listAllRunningKDEProcesses(ProcessList &processList)
+ {
+-    QString installPrefix = QStringLiteral(CMAKE_INSTALL_PREFIX);
++    QString installPrefix = installRoot();
+ 
+     foreach (const ProcessListEntry *ple, processList.list()) {
+         if (!ple->path.isEmpty() && ple->path.toLower().startsWith(installPrefix.toLower())) {
+@@ -445,7 +452,7 @@ void listAllRunningKDEProcesses(ProcessList &processList)
+ 
+ void terminateAllRunningKDEProcesses(ProcessList &processList)
+ {
+-    QString installPrefix = QStringLiteral(CMAKE_INSTALL_PREFIX);
++    QString installPrefix = installRoot();
+ 
+     foreach (const ProcessListEntry *ple, processList.list()) {
+         if (!ple->path.isEmpty() && ple->path.toLower().startsWith(installPrefix.toLower())) {
+-- 
+1.8.4.5
+

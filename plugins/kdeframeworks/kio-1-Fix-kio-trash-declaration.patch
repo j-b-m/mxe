@@ -1,0 +1,13 @@
+diff --git a/src/ioslaves/trash/kio_trash_win.cpp b/src/ioslaves/trash/kio_trash_win.cpp
+--- a/src/ioslaves/trash/kio_trash_win.cpp
++++ b/src/ioslaves/trash/kio_trash_win.cpp
+@@ -22,6 +22,9 @@
+ 
+ #include "kio_trash_win.h"
+ #include "kioglobal_p.h"
++#include <QLoggingCategory>
++Q_DECLARE_LOGGING_CATEGORY(KIO_TRASH)
++Q_LOGGING_CATEGORY(KIO_TRASH, "kf5.kio.trash")
+ #include "kio/job.h"
+ 
+ #include <QDataStream>

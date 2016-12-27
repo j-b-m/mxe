@@ -1,0 +1,53 @@
+diff --git a/src/monitor/glwidget.cpp b/src/monitor/glwidget.cpp
+index cd4f56a..0ba2e2a 100644
+--- a/src/monitor/glwidget.cpp
++++ b/src/monitor/glwidget.cpp
+@@ -144,11 +144,11 @@ void GLWidget::updateAudioForAnalysis()
+ 
+ void GLWidget::initializeGL()
+ {
+-    if (m_isInitialized || !isVisible() || !openglContext()) return;
++    if (m_isInitialized/* || !isVisible() || !openglContext()*/) return;
+     if (!m_offscreenSurface.isValid()) {
+         m_offscreenSurface.setFormat(openglContext()->format());
+         m_offscreenSurface.create();
+-        openglContext()->makeCurrent(this);
++        //openglContext()->makeCurrent(this);
+     }
+     initializeOpenGLFunctions();
+     qDebug() << "OpenGL vendor: " << QString::fromUtf8((const char*) glGetString(GL_VENDOR));
+@@ -637,8 +637,12 @@ void GLWidget::createThread(RenderThread **thread, thread_function_t function, v
+ {
+ #ifdef Q_OS_WIN
+     // On Windows, MLT event consumer-thread-create is fired from the Qt main thread.
+-    while (!m_isInitialized)
+-        qApp->processEvents();
++    if (!m_isInitialized) {
++        QTimer::singleShot(500, this, SLOT(reconfigure()));
++        return;
++    }
++    /*while (!m_isInitialized)
++        qApp->processEvents();*/
+ #else
+     if (!m_isInitialized) {
+         m_initSem.acquire();
+diff --git a/src/monitor/glwidget.h b/src/monitor/glwidget.h
+index d12500a..3f63705 100644
+--- a/src/monitor/glwidget.h
++++ b/src/monitor/glwidget.h
+@@ -66,7 +66,6 @@ public:
+     int setProducer(Mlt::Producer* producer);
+     int reconfigureMulti(QString params, QString path, Mlt::Profile *profile);
+     void stopCapture();
+-    int reconfigure(Mlt::Profile *profile = NULL);
+ 
+     int displayWidth() const { return m_rect.width(); }
+     void updateAudioForAnalysis();
+@@ -109,6 +108,7 @@ public slots:
+     void slotZoomScene(double value);
+     void initializeGL();
+     void releaseAnalyse();
++    int reconfigure(Mlt::Profile *profile = NULL);
+ 
+ signals:
+     void frameDisplayed(const SharedFrame& frame);
