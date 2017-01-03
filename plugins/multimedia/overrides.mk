@@ -9,7 +9,7 @@ ffmpeg_DEPS := $(filter-out gnutls libass libbluray libbs2b libcaca opencore-amr
 #--disable-libmp3lame
 define ffmpeg_BUILD
     cd '$(1)' && ./configure \
-        --cross-prefix=x86_64-w64-mingw32.shared.posix- \
+        --cross-prefix='$(TARGET)-' \
         --enable-cross-compile \
         --target-os=mingw32 \
         --disable-static \

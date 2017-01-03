@@ -24,12 +24,13 @@ rm -r $INSTALL_DIR/data/icons/
 cp -r share/{mlt,ffmpeg,dbus-1} $INSTALL_DIR/share
 cp -r etc/{dbus-1,xdg} $INSTALL_DIR/etc
 cp -r lib/{mlt,frei0r-1,ladspa} $INSTALL_DIR/lib
+
 # Qt finds local data directly in /data, not in /data/kdenlive
 mv $INSTALL_DIR/data/kdenlive/* $INSTALL_DIR/data/
-# Copy KDE's color schemes
-# cp -r /usr/share/color-schemes $INSTALL_DIR/data
-mkdir $INSTALL_DIR/data/color-schemes
-wget https://phabricator.kde.org/file/data/36fu36yuajvgl6puk6xi/PHID-FILE-agib4udk2b5i6djvt2oy/BreezeDark.colors -O $INSTALL_DIR/data/color-schemes/BreezeDark.colors
+
+# Copy KDE's color schemes from system
+cp -r /usr/share/color-schemes $INSTALL_DIR/data
+
 # MXE's libwinpthread is broken
 cp /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll $INSTALL_DIR
 

@@ -2,9 +2,12 @@
 
 PKG             := kdenlive
 $(PKG)_VERSION  := 16.12.0
-$(PKG)_CHECKSUM := 98bf39761ef44c0380d2699ebcb10133afac867af326c7ae1009b67ab881f911
-$(PKG)_SUBDIR   := $(PKG)-$($(PKG)_VERSION)
-$(PKG)_FILE     := $(PKG)-$($(PKG)_VERSION).tar.gz
+#$(PKG)_CHECKSUM := 98bf39761ef44c0380d2699ebcb10133afac867af326c7ae1009b67ab881f911
+#$(PKG)_SUBDIR   := $(PKG)-$($(PKG)_VERSION)
+
+#Using local git tree
+$(PKG)_SOURCE_TREE := /media/home/data/downloads/git/kdenlive
+#$(PKG)_FILE     := $(PKG)-$($(PKG)_VERSION).tar.gz
 $(PKG)_HOME     := http://download.kde.org/stable/applications
 $(PKG)_URL      := $($(PKG)_HOME)/$($(PKG)_VERSION)/src/$($(PKG)_FILE)
 $(PKG)_DEPS     := \
@@ -25,7 +28,7 @@ define $(PKG)_BUILD
     mkdir "$(1)/build"
     cd "$(1)/build" && \
 	PKG_CONFIG_LIBDIR=$(PREFIX)/$(TARGET)/lib/pkgconfig \
-	cmake .. \
+	cmake '$($(PKG)_SOURCE_TREE)' \
         -DCMAKE_TOOLCHAIN_FILE=$(CMAKE_TOOLCHAIN_FILE) \
         -DCMAKE_CROSSCOMPILING=ON \
         -DKF5_HOST_TOOLING=/usr/lib/x86_64-linux-gnu/cmake \
